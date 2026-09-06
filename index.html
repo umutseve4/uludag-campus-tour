@@ -1,275 +1,35 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#9fd4ed">
-  <meta name="description" content="Bursa Uludağ Üniversitesi Görükle Kampüsü'nde huzurlu, etkileşimli bir 3B yürüyüş.">
-  <title>Bursa Uludağ Üniversitesi Kampüs Turu</title>
-  <style>
-    :root { color-scheme: light; --ink:#12352b; --glass:rgba(249,253,248,.76); --line:rgba(255,255,255,.74); }
-    * { box-sizing:border-box; }
-    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#9fd4ed; }
-    body { font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); }
-    canvas { display:block; width:100%; height:100%; touch-action:none; outline:none; cursor:grab; }
-    canvas:active { cursor:grabbing; }
-    .hud { position:fixed; inset:0; z-index:2; pointer-events:none; padding:clamp(18px,3vw,42px); display:flex; flex-direction:column; justify-content:space-between; }
-    .top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
-    .title { max-width:min(760px,82vw); }
-    .eyebrow { margin:0 0 8px; font-size:11px; font-weight:800; letter-spacing:.22em; text-transform:uppercase; opacity:.68; }
-    h1 { margin:0; font-weight:780; font-size:clamp(24px,4.2vw,58px); line-height:.96; letter-spacing:-.055em; text-wrap:balance; text-shadow:0 2px 20px rgba(255,255,255,.7); }
-    .status { display:flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--line); border-radius:999px; background:var(--glass); backdrop-filter:blur(14px); box-shadow:0 12px 40px rgba(28,70,53,.12); font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
-    .status::before { content:""; width:7px; height:7px; border-radius:50%; background:#3aa568; box-shadow:0 0 0 5px rgba(58,165,104,.13); }
-    .bottom { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
-    .instructions { display:flex; gap:8px; flex-wrap:wrap; max-width:760px; }
-    .pill { padding:10px 13px; border:1px solid var(--line); border-radius:12px; background:var(--glass); backdrop-filter:blur(14px); box-shadow:0 12px 40px rgba(28,70,53,.1); font-size:12px; font-weight:700; }
-    .pill b { display:inline-grid; min-width:22px; min-height:22px; place-items:center; margin-right:6px; padding:0 5px; border:1px solid rgba(18,53,43,.16); border-bottom-width:2px; border-radius:6px; background:rgba(255,255,255,.64); font-size:10px; }
-    .credit { padding:8px 0; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; opacity:.7; white-space:nowrap; }
-    .noscript { position:fixed; inset:0; z-index:5; display:grid; place-items:center; padding:24px; background:#eaf6e8; text-align:center; font-weight:700; }
-    @media (max-width:700px) { .status{display:none}.bottom{align-items:flex-start;flex-direction:column}.credit{align-self:flex-end}.pill{font-size:11px;padding:8px 10px}.hud{padding:18px} }
-    @media (prefers-reduced-motion:reduce) { canvas { cursor:default; } .status::before { box-shadow:none; } }
-  </style>
-  <script type="importmap">
-  {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
-  </script>
-</head>
-<body>
-  <noscript><div class="noscript">Bu 3B kampüs turu için JavaScript'i etkinleştirin.</div></noscript>
-  <main class="hud" aria-label="Kampüs turu bilgileri">
-    <div class="top">
-      <div class="title">
-        <p class="eyebrow">Görükle · Bursa · Yeşil kampüs rotası</p>
-        <h1>Bursa Uludağ Üniversitesi Kampüs Turu</h1>
-      </div>
-      <div class="status">Huzurlu rota</div>
-    </div>
-    <div class="bottom">
-      <div class="instructions" aria-label="Kontroller">
-        <div class="pill"><b>WASD</b> / Ok tuşları ile yürü</div>
-        <div class="pill"><b>↔</b> Tıklayıp sürükleyerek etrafa bak</div>
-      </div>
-      <div class="credit">Build by GPT 5.6</div>
-    </div>
-  </main>
-
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xa9d9ee);
-    scene.fog = new THREE.Fog(0xb9ddec, 150, 760);
-
-    const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 1300);
-    camera.position.set(0, 3.1, 176);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.06;
-    renderer.domElement.tabIndex = 0;
-    renderer.domElement.setAttribute('role', 'img');
-    renderer.domElement.setAttribute('aria-label', 'Bursa Uludağ Üniversitesi Görükle Kampüsü üç boyutlu yürüyüş alanı');
-    document.body.prepend(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 2.4, 164);
-    controls.enableDamping = !reducedMotion;
-    controls.dampingFactor = 0.075;
-    controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.rotateSpeed = 0.42;
-    controls.minPolarAngle = Math.PI * 0.30;
-    controls.maxPolarAngle = Math.PI * 0.55;
-    controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
-    controls.touches.ONE = THREE.TOUCH.ROTATE;
-    controls.update();
-
-    const hemi = new THREE.HemisphereLight(0xdff5ff, 0x54734d, 2.4);
-    scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xfff4d4, 3.0);
-    sun.position.set(-90, 130, 70);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(1536, 1536);
-    Object.assign(sun.shadow.camera, { left:-150, right:150, top:170, bottom:-130, near:20, far:430 });
-    sun.shadow.bias = -0.0004;
-    scene.add(sun);
-
-    const mat = {
-      grass: new THREE.MeshStandardMaterial({ color:0x65a85a, roughness:.95 }),
-      grass2: new THREE.MeshStandardMaterial({ color:0x79b966, roughness:1 }),
-      road: new THREE.MeshStandardMaterial({ color:0xb4b2a4, roughness:.92 }),
-      path: new THREE.MeshStandardMaterial({ color:0xe2d7bd, roughness:.95 }),
-      curb: new THREE.MeshStandardMaterial({ color:0xe8e5d8, roughness:.85 }),
-      wood: new THREE.MeshStandardMaterial({ color:0x87532e, roughness:.8 }),
-      dark: new THREE.MeshStandardMaterial({ color:0x263735, roughness:.65 }),
-      trunk: new THREE.MeshStandardMaterial({ color:0x765039, roughness:1 }),
-      pine: new THREE.MeshStandardMaterial({ color:0x245e3d, roughness:.9 }),
-      pineLight: new THREE.MeshStandardMaterial({ color:0x34794b, roughness:.9 }),
-      glass: new THREE.MeshStandardMaterial({ color:0x82bad0, roughness:.2, metalness:.08 }),
-      white: new THREE.MeshStandardMaterial({ color:0xf1eee2, roughness:.82 }),
-      concrete: new THREE.MeshStandardMaterial({ color:0xcabfae, roughness:.88 }),
-      brick: new THREE.MeshStandardMaterial({ color:0x9b5841, roughness:.9 }),
-      blue: new THREE.MeshStandardMaterial({ color:0x2076a8, roughness:.55 }),
-      tire: new THREE.MeshStandardMaterial({ color:0x17201f, roughness:.88 }),
-      snow: new THREE.MeshStandardMaterial({ color:0xf7fbff, roughness:.78 }),
-      mountain: new THREE.MeshStandardMaterial({ color:0x708780, roughness:1, flatShading:true })
-    };
-
-    function box(w,h,d, material, x,y,z, cast=true, receive=true) {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material);
-      m.position.set(x,y,z); m.castShadow=cast; m.receiveShadow=receive; scene.add(m); return m;
-    }
-
-    box(520, 2, 900, mat.grass, 0,-1.1,-120, false, true);
-    box(42, .28, 790, mat.road, 0,.05,-120, false, true);
-    box(2.1, .42, 790, mat.curb, -22,.24,-120, false, true);
-    box(2.1, .42, 790, mat.curb, 22,.24,-120, false, true);
-    box(8, .22, 790, mat.path, -28,.13,-120, false, true);
-    box(8, .22, 790, mat.path, 28,.13,-120, false, true);
-    for (let z=180; z>-495; z-=26) box(.48,.035,10,mat.white,0,.22,z,false,false);
-
-    const ridge = new THREE.Group(); ridge.position.set(0,0,-675); scene.add(ridge);
-    function mountain(x, scale, height, snowy=false) {
-      const rock = new THREE.Mesh(new THREE.ConeGeometry(scale,height,7), mat.mountain);
-      rock.position.set(x,height*.43,0); rock.rotation.y=x*.017; ridge.add(rock);
-      if (snowy) {
-        const cap = new THREE.Mesh(new THREE.ConeGeometry(scale*.43,height*.31,7), mat.snow);
-        cap.position.set(x,height*.79,0); cap.rotation.y=rock.rotation.y; ridge.add(cap);
-      }
-    }
-    mountain(-150,150,220); mountain(-35,205,310,true); mountain(115,165,245,true); mountain(235,120,175);
-
-    const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(25,32), new THREE.MeshBasicMaterial({color:0xfff1b2, fog:false}));
-    sunDisc.position.set(-250,190,-560); sunDisc.lookAt(camera.position); scene.add(sunDisc);
-
-    function addLabel(text, position, width=16) {
-      const c=document.createElement('canvas'); c.width=1024; c.height=180;
-      const ctx=c.getContext('2d'); ctx.fillStyle='#f7f5ea'; ctx.fillRect(0,0,c.width,c.height);
-      ctx.fillStyle='#194238'; ctx.font='700 66px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,512,92);
-      const texture=new THREE.CanvasTexture(c); texture.colorSpace=THREE.SRGBColorSpace;
-      const label=new THREE.Mesh(new THREE.PlaneGeometry(width,width*180/1024),new THREE.MeshBasicMaterial({map:texture,transparent:true}));
-      label.position.copy(position); scene.add(label); return label;
-    }
-
-    const faculty = new THREE.Group(); faculty.position.set(-78,0,-72); scene.add(faculty);
-    function groupBox(group,w,h,d,material,x,y,z) { const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; group.add(m); return m; }
-    groupBox(faculty,62,17,30,mat.brick,0,8.5,0);
-    groupBox(faculty,24,7,7,mat.dark,0,3.5,18);
-    groupBox(faculty,28,2,10,mat.white,0,10.5,18);
-    for (let floor=0;floor<2;floor++) for(let col=-5;col<=5;col++) groupBox(faculty,3.3,3.3,.28,mat.glass,col*5.1,5.6+floor*6.2,15.15);
-    addLabel('İKTİSADİ VE İDARİ BİLİMLER',new THREE.Vector3(-78,18.5,-56.75),25);
-
-    const library = new THREE.Group(); library.position.set(76,0,-118); scene.add(library);
-    groupBox(library,58,13,36,mat.white,0,6.5,0);
-    groupBox(library,44,9,36.3,mat.glass,0,6.6,.2);
-    groupBox(library,62,2.2,40,mat.concrete,0,14,0);
-    groupBox(library,22,5,16,mat.glass,0,17.2,0);
-    for(let x=-24;x<=24;x+=8) groupBox(library,1.5,14,2,mat.white,x,7,19);
-    addLabel('MERKEZ KÜTÜPHANE',new THREE.Vector3(76,18.2,-97.8),22);
-
-    const treePositions=[];
-    let seed=2404;
-    const rand=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296);
-    for(let i=0;i<168;i++) {
-      const side=i%2?-1:1;
-      const x=side*(38+rand()*205), z=210-rand()*720;
-      if ((x<-42&&x>-116&&z<-38&&z>-112)||(x>42&&x<112&&z<-84&&z>-154)) continue;
-      treePositions.push({x,z,s:.75+rand()*.72,r:rand()*Math.PI});
-    }
-    const trunkGeo=new THREE.CylinderGeometry(.55,.8,5,7), cone1=new THREE.ConeGeometry(3.8,8,8), cone2=new THREE.ConeGeometry(3.2,7,8), cone3=new THREE.ConeGeometry(2.5,6,8);
-    const trunks=new THREE.InstancedMesh(trunkGeo,mat.trunk,treePositions.length);
-    const crowns=[new THREE.InstancedMesh(cone1,mat.pine,treePositions.length),new THREE.InstancedMesh(cone2,mat.pineLight,treePositions.length),new THREE.InstancedMesh(cone3,mat.pine,treePositions.length)];
-    const dummy=new THREE.Object3D();
-    treePositions.forEach((p,i)=>{
-      dummy.position.set(p.x,2.5,p.z); dummy.scale.setScalar(p.s); dummy.rotation.y=p.r; dummy.updateMatrix(); trunks.setMatrixAt(i,dummy.matrix);
-      [7.1,10.5,13.3].forEach((y,j)=>{ dummy.position.set(p.x,y*p.s,p.z); dummy.scale.setScalar(p.s); dummy.rotation.y=p.r; dummy.updateMatrix(); crowns[j].setMatrixAt(i,dummy.matrix); });
-    });
-    trunks.castShadow=true; trunks.receiveShadow=true; scene.add(trunks);
-    crowns.forEach(c=>{c.castShadow=true;scene.add(c)});
-
-    function bench(x,z,rotation=0) {
-      const g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=rotation; scene.add(g);
-      groupBox(g,7,.55,1.5,mat.wood,0,2,0); groupBox(g,7,.55,.55,mat.wood,0,3.8,.65);
-      groupBox(g,.45,2.1,.45,mat.dark,-2.4,1,0); groupBox(g,.45,2.1,.45,mat.dark,2.4,1,0);
-    }
-    function lamp(x,z) {
-      const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
-      groupBox(g,.28,8,.28,mat.dark,0,4,0); groupBox(g,1.8,.25,.3,mat.dark,.75,7.9,0);
-      const bulb=new THREE.Mesh(new THREE.SphereGeometry(.42,10,8),new THREE.MeshStandardMaterial({color:0xfff3c1,emissive:0xffd46b,emissiveIntensity:.65})); bulb.position.set(1.5,7.55,0); g.add(bulb);
-    }
-    for(let z=145;z>-410;z-=54) { lamp(-32,z); lamp(32,z-27); }
-    [-18,-165,-310].forEach((z,i)=>{ bench(-33,z,i%2?Math.PI:0); bench(33,z-24,i%2?0:Math.PI); });
-
-    const shuttle=new THREE.Group(); scene.add(shuttle);
-    groupBox(shuttle,8,4.4,17,mat.blue,0,3,0);
-    groupBox(shuttle,7.4,2.15,11.5,mat.glass,0,5.5,-.5);
-    groupBox(shuttle,8.1,.55,17.2,mat.white,0,1.25,0);
-    const wheelGeo=new THREE.CylinderGeometry(1.25,1.25,.65,12);
-    const wheels=[];
-    [[-4.15,1,-5.5],[4.15,1,-5.5],[-4.15,1,5.4],[4.15,1,5.4]].forEach(p=>{const w=new THREE.Mesh(wheelGeo,mat.tire);w.position.set(...p);w.rotation.z=Math.PI/2;w.castShadow=true;shuttle.add(w);wheels.push(w)});
-    const shuttleSign=addLabel('KAMPÜS',new THREE.Vector3(0,0,0),5.6); scene.remove(shuttleSign); shuttle.add(shuttleSign); shuttleSign.position.set(0,4.9,-8.53); shuttleSign.rotation.y=Math.PI; shuttleSign.scale.set(1,.85,1);
-
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(3.6,.48,10,36),new THREE.MeshStandardMaterial({color:0x1e7f63,metalness:.25,roughness:.35}));
-    ring.position.set(-29,5,82); ring.rotation.y=Math.PI/2; ring.castShadow=true; scene.add(ring);
-    box(8,.7,8,mat.concrete,-29,.35,82,true,true);
-
-    const keys=new Set();
-    const movementKeys=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight']);
-    addEventListener('keydown',e=>{ if(movementKeys.has(e.code)){ e.preventDefault(); keys.add(e.code); renderer.domElement.focus({preventScroll:true}); } },{passive:false});
-    addEventListener('keyup',e=>keys.delete(e.code));
-    const clearKeys=()=>keys.clear();
-    addEventListener('blur',clearKeys); document.addEventListener('visibilitychange',()=>{if(document.hidden)clearKeys()});
-
-    const forward=new THREE.Vector3(), right=new THREE.Vector3(), move=new THREE.Vector3();
-    function updateMovement(dt) {
-      let fb=0,lr=0;
-      if(keys.has('KeyW')||keys.has('ArrowUp'))fb+=1;
-      if(keys.has('KeyS')||keys.has('ArrowDown'))fb-=1;
-      if(keys.has('KeyD')||keys.has('ArrowRight'))lr+=1;
-      if(keys.has('KeyA')||keys.has('ArrowLeft'))lr-=1;
-      if(!fb&&!lr)return;
-      forward.subVectors(controls.target,camera.position); forward.y=0; forward.normalize();
-      right.crossVectors(forward,camera.up).normalize();
-      move.set(0,0,0).addScaledVector(forward,fb).addScaledVector(right,lr).normalize().multiplyScalar(19*dt);
-      const oldX=camera.position.x, oldZ=camera.position.z;
-      camera.position.add(move); controls.target.add(move);
-      const nx=THREE.MathUtils.clamp(camera.position.x,-20,20), nz=THREE.MathUtils.clamp(camera.position.z,-430,205);
-      const correction=new THREE.Vector3(nx-camera.position.x,0,nz-camera.position.z);
-      camera.position.add(correction); controls.target.add(correction);
-      if(oldX!==camera.position.x||oldZ!==camera.position.z) renderer.domElement.focus({preventScroll:true});
-    }
-
-    const clock=new THREE.Clock(); let running=true;
-    function animate() {
-      if(!running)return;
-      requestAnimationFrame(animate);
-      const dt=Math.min(clock.getDelta(),.05), t=clock.elapsedTime;
-      updateMovement(dt); controls.update();
-      if(!reducedMotion) {
-        shuttle.position.set(8,0,160-((t*8)%610));
-        wheels.forEach(w=>w.rotation.x-=dt*6.4);
-        shuttle.position.y=Math.sin(t*2.1)*.025;
-      } else shuttle.position.set(8,0,54);
-      renderer.render(scene,camera);
-    }
-    animate();
-
-    document.addEventListener('visibilitychange',()=>{
-      running=!document.hidden;
-      if(running){clock.getDelta();animate()}
-    });
-    addEventListener('resize',()=>{
-      camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-      renderer.setPixelRatio(Math.min(devicePixelRatio,1.7)); renderer.setSize(innerWidth,innerHeight);
-    });
-    renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();running=false});
-    renderer.domElement.addEventListener('webglcontextrestored',()=>{running=true;clock.getDelta();animate()});
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b9dcf0"><title>Bursa Uludağ Üniversitesi Kampüs Turu</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#b9dcf0;font-family:Inter,system-ui,sans-serif;color:#123b32}canvas{display:block;width:100%;height:100%;touch-action:none;outline:0;cursor:grab}.hud{position:fixed;inset:0;z-index:2;pointer-events:none;padding:clamp(18px,3vw,40px);display:flex;flex-direction:column;justify-content:space-between}.top,.bottom{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.eyebrow{font-size:10px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;opacity:.7;margin-bottom:8px}h1{margin:0;max-width:720px;font-size:clamp(24px,4vw,52px);line-height:.96;letter-spacing:-.055em;text-shadow:0 2px 20px #fff}.badge,.pill{background:rgba(250,253,248,.8);border:1px solid rgba(255,255,255,.8);backdrop-filter:blur(14px);box-shadow:0 12px 40px #194c3720}.badge{border-radius:99px;padding:10px 14px;font-size:10px;font-weight:900;letter-spacing:.13em}.instructions{display:flex;gap:8px;flex-wrap:wrap}.pill{padding:9px 12px;border-radius:11px;font-size:11px;font-weight:750}.pill b{padding:3px 6px;border:1px solid #123b3230;border-radius:5px;margin-right:5px}.credit{font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase;padding:10px 0}.location{position:fixed;left:50%;top:23px;transform:translateX(-50%);z-index:3;padding:8px 12px;border-radius:99px;background:rgba(15,55,45,.8);color:white;font-size:10px;font-weight:850;letter-spacing:.12em;pointer-events:none;backdrop-filter:blur(8px)}
+@media(max-width:700px){.hud{padding:17px}.badge{display:none}.bottom{flex-direction:column}.credit{align-self:flex-end}.location{top:auto;bottom:78px}h1{font-size:28px}}
+@media(prefers-reduced-motion:reduce){canvas{cursor:default}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script></head>
+<body><div class="location">MERKEZ KAMPÜS · GÖRÜKLE</div><main class="hud"><div class="top"><div><div class="eyebrow">Bursa · Görükle · Yaşayan kampüs</div><h1>Bursa Uludağ Üniversitesi Kampüs Turu</h1></div><div class="badge">● KAMPÜS CANLI</div></div><div class="bottom"><div class="instructions"><div class="pill"><b>WASD</b> / Oklarla yürü</div><div class="pill"><b>↔</b> Sürükleyerek bak</div></div><div class="credit">Build by GPT 5.6</div></div></main>
+<script type="module">
+import * as THREE from 'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,S=new THREE.Scene();S.background=new THREE.Color(0xb9dcf0);S.fog=new THREE.Fog(0xc6e1ec,180,610);
+const C=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,1000);C.position.set(0,8,148);
+const R=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputColorSpace=THREE.SRGBColorSpace;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.08;R.domElement.tabIndex=0;R.domElement.setAttribute('aria-label','Bursa Uludağ Üniversitesi etkileşimli üç boyutlu kampüs turu');document.body.prepend(R.domElement);
+const O=new OrbitControls(C,R.domElement);O.target.set(0,4,128);O.enableDamping=!reduced;O.dampingFactor=.07;O.enablePan=false;O.enableZoom=false;O.minPolarAngle=.28*Math.PI;O.maxPolarAngle=.53*Math.PI;O.rotateSpeed=.42;O.update();
+S.add(new THREE.HemisphereLight(0xeafaff,0x4f7146,2.5));const sun=new THREE.DirectionalLight(0xfff1cf,3.1);sun.position.set(-100,150,90);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-190,right:190,top:190,bottom:-190,near:20,far:480});sun.shadow.bias=-.0005;S.add(sun);
+const M={grass:new THREE.MeshStandardMaterial({color:0x6fae5c,roughness:1}),grass2:new THREE.MeshStandardMaterial({color:0x82bd69,roughness:1}),stone:new THREE.MeshStandardMaterial({color:0xd9d5c8,roughness:.92}),road:new THREE.MeshStandardMaterial({color:0x777c78,roughness:.9}),walk:new THREE.MeshStandardMaterial({color:0xe5ddc9,roughness:.94}),white:new THREE.MeshStandardMaterial({color:0xf0eee6,roughness:.8}),brick:new THREE.MeshStandardMaterial({color:0xa55f47,roughness:.88}),sand:new THREE.MeshStandardMaterial({color:0xc8ac7f,roughness:.9}),dark:new THREE.MeshStandardMaterial({color:0x203b39,roughness:.7}),glass:new THREE.MeshStandardMaterial({color:0x67a8bd,roughness:.22,metalness:.1}),wood:new THREE.MeshStandardMaterial({color:0x85502e,roughness:.85}),pine:new THREE.MeshStandardMaterial({color:0x22613d,roughness:.95}),leaf:new THREE.MeshStandardMaterial({color:0x4d8f49,roughness:.95}),trunk:new THREE.MeshStandardMaterial({color:0x6e4a32,roughness:1}),blue:new THREE.MeshStandardMaterial({color:0x1f77a6}),red:new THREE.MeshStandardMaterial({color:0xb83e39}),snow:new THREE.MeshStandardMaterial({color:0xf8fcff,roughness:.75}),mount:new THREE.MeshStandardMaterial({color:0x738a83,flatShading:true,roughness:1})};
+const root=new THREE.Group();S.add(root);function mesh(g,m,x=0,y=0,z=0,cast=false,receive=false,parent=root){const q=new THREE.Mesh(g,m);q.position.set(x,y,z);q.castShadow=cast;q.receiveShadow=receive;parent.add(q);return q}function box(w,h,d,m,x,y,z,c=false,r=true,p=root){return mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z,c,r,p)}
+box(430,2,560,M.grass,0,-1,-80,false,true);for(let i=-190;i<200;i+=38)box(22,.08,560,M.grass2,i,.04,-80,false,false);
+function segment(a,b,width,material=M.walk,y=.12){const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),q=box(width,.22,len,material,(a[0]+b[0])/2,y,(a[1]+b[1])/2,false,true);q.rotation.y=Math.atan2(dx,dz);return q}
+segment([0,180],[0,95],22,M.road,.1);segment([0,152],[0,95],14,M.walk,.24);mesh(new THREE.CylinderGeometry(48,48,.4,48),M.stone,0,.12,58,false,true);segment([0,58],[0,-105],13);segment([0,58],[72,-28],10);segment([0,58],[104,62],9);segment([0,58],[72,132],9);segment([0,58],[-72,132],9);segment([0,58],[-105,62],9);segment([0,58],[-70,-42],9);segment([-105,62],[-70,-42],6);segment([-70,-42],[0,-105],6);segment([0,-105],[72,-28],6);segment([72,-28],[104,62],6);segment([104,62],[72,132],6);segment([72,132],[0,165],6);segment([0,165],[-72,132],6);segment([-72,132],[-105,62],6);
+mesh(new THREE.CylinderGeometry(3.5,5,2,10),M.dark,0,1.2,58,true);const ring=mesh(new THREE.TorusGeometry(7,.65,12,40),M.blue,0,10,58,true);ring.rotation.y=Math.PI/2;box(20,.18,9,new THREE.MeshStandardMaterial({color:0x61a8bd,metalness:.1,roughness:.18}),-22,.32,58);for(const x of[-36,-29,29,36]){box(.3,12,.3,M.dark,x,6,35,true);box(4,2.3,.08,x<0?M.red:M.white,x+(x<0?2:-2),10.5,35,false)}
+function label(text,x,y,z,w=20,ry=0){const c=document.createElement('canvas');c.width=768;c.height=128;const k=c.getContext('2d');k.fillStyle='#f5f2e8';k.fillRect(0,0,768,128);k.fillStyle='#164339';k.font='800 43px system-ui';k.textAlign='center';k.textBaseline='middle';k.fillText(text,384,66);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const q=mesh(new THREE.PlaneGeometry(w,w/6),new THREE.MeshBasicMaterial({map:t}),x,y,z);q.rotation.y=ry;return q}
+function building(o){const g=new THREE.Group();g.position.set(o.x,0,o.z);g.rotation.y=o.r||0;root.add(g);box(o.w,o.h,o.d,o.m||M.white,0,o.h/2,0,true,true,g);box(o.w+2,1.1,o.d+2,M.dark,0,o.h+.55,0,true,true,g);box(o.w*.28,o.h*.58,1,M.glass,0,o.h*.43,o.d/2+.52,false,false,g);for(let i=-o.w*.38;i<=o.w*.38;i+=6)for(let y=4;y<o.h-2;y+=5)box(3.5,2,.3,M.glass,i,y,o.d/2+.56,false,false,g);label(o.name,o.x,o.h+2.1,o.z+o.d/2+.9,Math.min(o.w*.82,28),o.r||0);return g}
+building({name:'REKTÖRLÜK',x:0,z:-132,w:55,h:18,d:28,m:M.white});box(10,18,10,M.sand,0,27,-132,true);box(15,2,15,M.dark,0,36,-132,true);building({name:'FUAT SEZGİN KÜTÜPHANESİ',x:74,z:-58,w:58,h:22,d:34,m:M.white,r:-.14});box(15,12,18,M.glass,76,27,-58,true);building({name:'İİBF',x:-82,z:-34,w:60,h:17,d:30,m:M.brick,r:.12});building({name:'MÜHENDİSLİK FAKÜLTESİ',x:-120,z:61,w:62,h:20,d:32,m:M.sand,r:-.08});box(24,5,8,M.glass,-94,14,61,true);building({name:'ÖĞRENCİ MERKEZİ',x:124,z:54,w:50,h:14,d:30,m:M.white,r:.1});box(55,2,8,M.red,124,15,68,true);building({name:'MERKEZ YEMEKHANE',x:91,z:137,w:55,h:13,d:32,m:M.brick,r:-.1});building({name:'TIP FAKÜLTESİ',x:-73,z:145,w:68,h:21,d:35,m:M.white,r:.08});box(6,6,1,M.red,-73,16,163,true);building({name:'FEN EDEBİYAT',x:-71,z:207,w:64,h:16,d:28,m:M.sand,r:-.08});building({name:'YURTLAR',x:75,z:211,w:58,h:24,d:26,m:M.brick,r:.08});building({name:'METE CENGİZ KÜLTÜR MERKEZİ',x:-132,z:-78,w:54,h:15,d:35,m:M.dark,r:.15});
+box(62,.25,38,new THREE.MeshStandardMaterial({color:0x458b4c}),128,.18,-66,false,true);for(const z of[-82,-50])for(const x of[101,155]){box(.35,16,.35,M.dark,x,8,z,true);box(4,.25,.25,M.white,x+(x<128?2:-2),15,z)}label('SPOR TESİSLERİ',128,3,-44,24);for(let i=0;i<7;i++){const q=mesh(new THREE.TorusGeometry(13+i*2.1,.8,6,28,Math.PI),M.stone,-33,.5+i*.55,-93-i*1.5);q.rotation.x=Math.PI/2;q.rotation.z=Math.PI}label('AÇIK HAVA AMFİSİ',-33,4,-110,23);for(let i=0;i<3;i++){const q=mesh(new THREE.CylinderGeometry(7,7,15,10,1,true),new THREE.MeshStandardMaterial({color:0x88c2b5,transparent:true,opacity:.55,side:THREE.DoubleSide}),145,5,125+i*18);q.rotation.z=Math.PI/2}label('ZİRAAT UYGULAMA ALANI',145,13,144,24,Math.PI/2);box(70,.3,30,M.road,0,.2,194);box(30,6,10,M.glass,0,3.2,212,true);box(34,1,13,M.dark,0,7,212,true);label('ÜNİVERSİTE METRO',0,9,205,22);
+function bench(x,z,r=0){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=r;root.add(g);box(6,.5,1.4,M.wood,0,1.7,0,true,true,g);box(6,.5,.5,M.wood,0,3,.55,true,true,g);box(.4,1.7,.4,M.dark,-2,1,0,false,true,g);box(.4,1.7,.4,M.dark,2,1,0,false,true,g)}for(let a=0;a<Math.PI*2;a+=Math.PI/6)bench(Math.cos(a)*39,58+Math.sin(a)*32,-a+Math.PI/2);for(const p of[[-45,108],[45,108],[-83,91],[83,91],[-44,9],[44,9],[-105,130],[112,113]])bench(p[0],p[1]);
+function lamp(x,z){box(.25,9,.25,M.dark,x,4.5,z,true);box(2,.25,.25,M.dark,x+1,8.8,z);mesh(new THREE.SphereGeometry(.45,8,6),new THREE.MeshStandardMaterial({color:0xffedaf,emissive:0xffcc62,emissiveIntensity:.6}),x+2,8.5,z)}for(let a=0;a<Math.PI*2;a+=Math.PI/8)lamp(Math.cos(a)*45,58+Math.sin(a)*38);for(let z=-105;z<180;z+=38){lamp(-9,z);lamp(9,z+19)}for(const p of[[-25,100,'REKTÖRLÜK  ↑'],[35,96,'KÜTÜPHANE  ↗'],[-57,83,'FAKÜLTELER  ←'],[67,80,'SPOR  →'],[9,138,'METRO  ↑']]){box(5,3,.4,M.dark,p[0],3,p[1]);label(p[2],p[0],3,p[1]+.23,8)}
+let seed=5065;const rand=()=>((seed=(seed*1664525+1013904223)>>>0)/4294967296),trees=[];for(let i=0;i<115;i++){const x=-195+rand()*390,z=-215+rand()*470;if(Math.hypot(x,z-58)<54||Math.abs(x)<16||([-132,-82,-71,0,74,91,124,128].some(b=>Math.abs(x-b)<34)))continue;trees.push([x,z,.7+rand()*.8])}const tg=new THREE.CylinderGeometry(.5,.8,5,7),cg=new THREE.ConeGeometry(3.8,9,8),tr=new THREE.InstancedMesh(tg,M.trunk,trees.length),cr=new THREE.InstancedMesh(cg,M.pine,trees.length),D=new THREE.Object3D();trees.forEach((p,i)=>{D.position.set(p[0],2.5,p[1]);D.scale.setScalar(p[2]);D.updateMatrix();tr.setMatrixAt(i,D.matrix);D.position.y=8*p[2];D.updateMatrix();cr.setMatrixAt(i,D.matrix)});tr.castShadow=cr.castShadow=true;root.add(tr,cr);
+const N=34,bodies=new THREE.InstancedMesh(new THREE.CapsuleGeometry(.55,1.35,3,6),M.blue,N),heads=new THREE.InstancedMesh(new THREE.SphereGeometry(.48,8,6),new THREE.MeshStandardMaterial({color:0xe0ae83}),N),packs=new THREE.InstancedMesh(new THREE.BoxGeometry(.7,.85,.35),M.red,N),people=[];for(let i=0;i<N;i++){const a=i/N*Math.PI*2,rad=20+(i%5)*7;people.push({a,rad,s:.08+(i%4)*.012,phase:i*.8})}root.add(bodies,heads,packs);function updatePeople(t){people.forEach((p,i)=>{const a=p.a+(reduced?0:t*p.s),x=Math.cos(a)*p.rad,z=58+Math.sin(a)*p.rad*.75,bob=reduced?0:Math.sin(t*6+p.phase)*.08;D.position.set(x,1.45+bob,z);D.rotation.y=-a;D.scale.setScalar(1);D.updateMatrix();bodies.setMatrixAt(i,D.matrix);D.position.y=3.05+bob;D.updateMatrix();heads.setMatrixAt(i,D.matrix);D.position.set(x-Math.cos(a)*.55,1.75+bob,z-Math.sin(a)*.55);D.updateMatrix();packs.setMatrixAt(i,D.matrix)});bodies.instanceMatrix.needsUpdate=heads.instanceMatrix.needsUpdate=packs.instanceMatrix.needsUpdate=true}
+function bus(color){const g=new THREE.Group();box(7,4,14,color,0,3,0,true,true,g);box(6.5,2,8,M.glass,0,5,-1,false,false,g);for(const x of[-3.7,3.7])for(const z of[-4.5,4.5]){const w=mesh(new THREE.CylinderGeometry(1,1,.5,10),M.dark,x,1,z,false,false,g);w.rotation.z=Math.PI/2}root.add(g);return g}const bus1=bus(M.blue),bus2=bus(M.red);
+const ridge=new THREE.Group();ridge.position.z=-430;root.add(ridge);function mountain(x,r,h,snow){const q=mesh(new THREE.ConeGeometry(r,h,7),M.mount,x,h*.43,0,false,false,ridge);q.rotation.y=x*.01;if(snow){const c=mesh(new THREE.ConeGeometry(r*.4,h*.3,7),M.snow,x,h*.78,0,false,false,ridge);c.rotation.y=q.rotation.y}}mountain(-140,120,180);mountain(-35,165,245,true);mountain(100,145,210,true);mountain(215,100,150);
+const keys=new Set(),valid=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight']);addEventListener('keydown',e=>{if(valid.has(e.code)){e.preventDefault();keys.add(e.code)}},{passive:false});addEventListener('keyup',e=>keys.delete(e.code));const clear=()=>keys.clear();addEventListener('blur',clear);document.addEventListener('visibilitychange',()=>{if(document.hidden)clear()});const f=new THREE.Vector3(),right=new THREE.Vector3(),move=new THREE.Vector3(),cor=new THREE.Vector3();function movement(dt){let z=0,x=0;if(keys.has('KeyW')||keys.has('ArrowUp'))z++;if(keys.has('KeyS')||keys.has('ArrowDown'))z--;if(keys.has('KeyD')||keys.has('ArrowRight'))x++;if(keys.has('KeyA')||keys.has('ArrowLeft'))x--;if(!x&&!z)return;f.subVectors(O.target,C.position);f.y=0;f.normalize();right.crossVectors(f,C.up).normalize();move.set(0,0,0).addScaledVector(f,z).addScaledVector(right,x).normalize().multiplyScalar(20*dt);C.position.add(move);O.target.add(move);const nx=THREE.MathUtils.clamp(C.position.x,-180,180),nz=THREE.MathUtils.clamp(C.position.z,-205,225);cor.set(nx-C.position.x,0,nz-C.position.z);C.position.add(cor);O.target.add(cor)}
+const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;movement(dt);O.update();updatePeople(t);if(!reduced){bus1.position.set(-7,0,190-((t*9)%390));bus2.position.set(7,0,-190+((t*7)%390));bus2.rotation.y=Math.PI}else{bus1.position.set(-7,0,120);bus2.position.set(7,0,-40);bus2.rotation.y=Math.PI}R.render(S,C)}animate();addEventListener('resize',()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,1.5))});R.domElement.addEventListener('webglcontextlost',e=>e.preventDefault());
+</script></body></html>
