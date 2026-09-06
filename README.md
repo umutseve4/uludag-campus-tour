@@ -7,6 +7,11 @@
 </p>
 
 <p align="center">
+  <a href="https://umutseve4.github.io/uludag-campus-tour/"><b>▶ İlk sürümü tarayıcıda aç</b></a>
+  &nbsp;·&nbsp; devamı için <a href="https://github.com/umutseve4/uludag-campus-tour-webgl">uludag-campus-tour-webgl</a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/kaynak%20dosya-1%20HTML-FF4D4F?style=flat-square" alt="1 HTML dosyası">
   <img src="https://img.shields.io/badge/kurulum-yok-FF4D4F?style=flat-square" alt="kurulum yok">
   <img src="https://img.shields.io/badge/Three.js-0.169.0-FF4D4F?style=flat-square" alt="Three.js 0.169.0">
@@ -15,6 +20,8 @@
 ---
 
 ## 30 saniyede ne oluyor?
+
+En hızlısı [canlı sürüm](https://umutseve4.github.io/uludag-campus-tour/). Yerelde çalıştırmak için:
 
 ```bash
 git clone https://github.com/umutseve4/uludag-campus-tour && cd uludag-campus-tour
