@@ -1,4 +1,4 @@
-# Bursa Uludağ Üniversitesi Kampüs Turu
+# Bursa Uludağ Üniversitesi  -  Kampüs Turu
 
 Görükle Kampüsü hissini; çamlarla çevrili geniş bir yol, fakülte, merkez kütüphane, banklar, lambalar, hareketli kampüs servisi ve uzaktaki karlı Uludağ siluetiyle anlatan tek dosyalık Three.js deneyimi.
 
