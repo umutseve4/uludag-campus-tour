@@ -1,4 +1,4 @@
-<h1 align="center">Uludağ Üniversitesi — Kampüs Turu</h1>
+<h1 align="center">Uludağ Üniversitesi Kampüs Turu</h1>
 
 <p align="center">
   Görükle Kampüsü'nde tek dosyalık bir yürüyüş.<br>
@@ -39,9 +39,9 @@ bağımlılık yok; Three.js `0.169.0` CDN üzerinden yükleniyor.
 ## Sınırlar
 
 - **Stilize bir sanatsal yorumdur; birebir kampüs haritası değildir.** Bina konumları, ölçekler ve yol düzeni gerçek yerleşkeyi temsil etmez.
-- İnternet bağlantısı gerekir — Three.js CDN'den yükleniyor, tamamen çevrimdışı çalışmaz.
+- İnternet bağlantısı gerekir, Three.js CDN'den yükleniyor, tamamen çevrimdışı çalışmaz.
 - Otomatik test veya CI yok; tarayıcı davranışı elle kontrol edilir.
-- **Bu deponun devamı ayrı bir depoda sürüyor:** [`umutseve4/uludag-campus-tour-webgl`](https://github.com/umutseve4/uludag-campus-tour-webgl) — testli, CI'lı ve daha geniş kapsamlı sürüm orada. Bu depo ilk denemenin kaydı olarak duruyor.
+- **Bu deponun devamı ayrı bir depoda sürüyor:** [`umutseve4/uludag-campus-tour-webgl`](https://github.com/umutseve4/uludag-campus-tour-webgl). Testli, CI'lı ve daha geniş kapsamlı sürüm orada. Bu depo ilk denemenin kaydı olarak duruyor.
 
 Bu sahnenin ilk sürümü GPT 5.6 ile üretildi.
 
